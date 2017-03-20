@@ -2,7 +2,7 @@ async_mode = "eventlet"
 from eventlet import wsgi, websocket
 import eventlet
 eventlet.monkey_patch()
-from flask import Flask, render_template, session, request, Response
+from flask import Flask, render_template, session, request, Response, redirect, url_for
 from flask_socketio import SocketIO, emit, disconnect
 import base64
 
@@ -13,10 +13,16 @@ app = Flask(__name__)
 socketio = SocketIO(app)
 
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
     """Video streaming home page."""
-    return render_template('index.html', async_mode=socketio.async_mode)
+    if request.method == 'GET':
+        return render_template('index.html', async_mode=socketio.async_mode)
+    if request.method == 'POST':
+        data = request.form['frame_data']
+        with open("test.png", "wb") as f:
+            f.write(data)
+        return redirect(url_for('snapshot'))    
 
 
 def gen(video):

@@ -1,7 +1,5 @@
 <!DOCTYPE html>
 <html>
-  <head>
-  </head>
 
   <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
   <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script>
@@ -18,8 +16,8 @@
       <button onclick="startWebcam();">Start WebCam</button>
       <button onclick="stopWebcam();">Stop WebCam</button> 
     </p>
-      <video onclick="snapshot(this);" width="400" height="300" id="video" controls autoplay></video>
-      <canvas  id="myCanvas" width="400" height="300"></canvas>  
+      <video onclick="snapshot(this);" id="video" controls autoplay></video>
+      <canvas id="myCanvas"></canvas>  
   </body>
 
   <script type="text/javascript">
@@ -80,13 +78,16 @@
       // The connection URL has the following format:
       //     http[s]://<domain>:<port>[/<namespace>]
       var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
-      timer = setInterval(
-        function snapshot() {
-        // Draws current image from the video element into the canvas
-          ctx.drawImage(video, 0,0, canvas.width, canvas.height);
-          var frame = canvas.toDataURL("image/png");
-          console.log(frame.substring(0, 50));
-        }, 1000);
+
+      function snapshot() {
+      // Draws current image from the video element into the canvas
+        ctx.drawImage(video, 0,0, canvas.width, canvas.height);
+        var frame = canvas.toDataURL("image/png");
+        // console.log(frame.substring(0, 50));
+        $.post("/", { frame_data: frame });
+      }
+
+      timer = setInterval(snapshot(), 1000);
 
       // Event handler for new connections.
       // The callback function is invoked when a connection with the
