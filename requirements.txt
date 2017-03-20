@@ -1,0 +1,10 @@
+Flask
+itsdangerous
+Jinja2
+MarkupSafe
+Werkzeug
+pyopenssl
+pyparsing
+appdirs
+eventlet
+flask-socketio
