@@ -6,7 +6,7 @@ RUN apt-get update
 RUN apt-get -y upgrade
  
 # Install Python
-RUN apt-get install -y python-dev python-pip build-essential libssl-dev libffi-dev libxml2-dev libxslt-dev
+RUN apt-get install -y python-dev python-pip build-essential libssl-dev libffi-dev libxml2-dev libxslt-dev python-numpy python-scipy
  
 # Add requirements.txt
 ADD requirements.txt .

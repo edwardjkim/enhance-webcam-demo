@@ -11,12 +11,13 @@
     <p>
       <img src="{{ url_for('original_video_feed') }}" width="640" height="360" style="image-rendering: pixelated;">
       <img src="{{ url_for('upsampled_video_feed') }}" width="640" height="360">
+      <img id="test" src="static/test.png" width="640" height="360" style="image-rendering: pixelated;">
     </p>
     <p>
       <button onclick="startWebcam();">Start WebCam</button>
       <button onclick="stopWebcam();">Stop WebCam</button> 
     </p>
-      <video onclick="snapshot(this);" id="video" controls autoplay></video>
+      <video id="video" controls autoplay></video>
       <canvas id="myCanvas"></canvas>  
   </body>
 
@@ -83,11 +84,13 @@
       // Draws current image from the video element into the canvas
         ctx.drawImage(video, 0,0, canvas.width, canvas.height);
         var frame = canvas.toDataURL("image/png");
-        // console.log(frame.substring(0, 50));
         $.post("/", { frame_data: frame });
+        var newImage = document.getElementById("test");
+        //newImage.setAttribute("src", "static/test.png");
+        newImage.src = 'static/test.png?' + new Date().getTime();
       }
 
-      timer = setInterval(snapshot(), 1000);
+      timer = setInterval(snapshot, 1000);
 
       // Event handler for new connections.
       // The callback function is invoked when a connection with the

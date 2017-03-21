@@ -5,6 +5,11 @@ eventlet.monkey_patch()
 from flask import Flask, render_template, session, request, Response, redirect, url_for
 from flask_socketio import SocketIO, emit, disconnect
 import base64
+import re
+from PIL import Image
+import cStringIO
+import numpy as np
+from scipy.misc import imsave
 
 from video import Video
 
@@ -19,10 +24,11 @@ def index():
     if request.method == 'GET':
         return render_template('index.html', async_mode=socketio.async_mode)
     if request.method == 'POST':
-        data = request.form['frame_data']
-        with open("test.png", "wb") as f:
-            f.write(data)
-        return redirect(url_for('snapshot'))    
+        image_b64 = request.form['frame_data']
+        image_data = re.sub('^data:image/.+;base64,', '', image_b64).decode('base64')
+        with open('static/test.png', 'w') as f:
+            f.write(image_data)
+        return Response('OK')
 
 
 def gen(video):
@@ -30,7 +36,7 @@ def gen(video):
     while True:
         frame = video.get_frame()
         yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+               b'Content-Type: image/png\r\n\r\n' + frame + b'\r\n')
 
 
 @app.route('/original_video_feed')

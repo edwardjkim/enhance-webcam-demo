@@ -8,7 +8,7 @@ class Video(object):
 
     def __init__(self, dir_name, fps):
         self.dir_name = dir_name
-        self.frames = [open(f, 'rb').read() for f in sorted(glob('{}/*.jpg'.format(self.dir_name)))]
+        self.frames = [open(f, 'rb').read() for f in sorted(glob('{}/*.png'.format(self.dir_name)))]
         self.fps = fps
         self.next_frame = 0
 
