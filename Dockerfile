@@ -1,4 +1,4 @@
-FROM ubuntu:14.04
+FROM gcr.io/tensorflow/tensorflow:latest-gpu
  
 # Update OS
 RUN sed -i 's/# \(.*multiverse$\)/\1/g' /etc/apt/sources.list
@@ -6,7 +6,17 @@ RUN apt-get update
 RUN apt-get -y upgrade
  
 # Install Python
-RUN apt-get install -y python-dev python-pip build-essential libssl-dev libffi-dev libxml2-dev libxslt-dev python-numpy python-scipy
+RUN apt-get install -y \
+  python-dev \
+  python-pip \
+  build-essential \
+  libssl-dev \
+  libffi-dev \
+  libxml2-dev \
+  libxslt-dev \
+  python-numpy \
+  python-scipy \
+  netbase
  
 # Add requirements.txt
 ADD requirements.txt .
