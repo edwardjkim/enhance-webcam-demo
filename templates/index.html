@@ -14,7 +14,7 @@
     </p>
       <video id="video" controls autoplay></video>
       <canvas id="myCanvas"></canvas>  
-      <img id="test" src="static/test.png" height="480" style="image-rendering: pixelated;">
+      <img id="current" src="static/current_frame.png" height="480" style="image-rendering: pixelated;">
   </body>
 
   <script type="text/javascript">
@@ -84,11 +84,10 @@
           canvas.height = resizedHeight;
           // Draws current image from the video element into the canvas
           ctx.drawImage(video, 0, 0, resizedWidth, resizedHeight);
-          var frame = canvas.toDataURL("image/png");
-          $.post("/", { frame_data: frame });
-          var newImage = document.getElementById("test");
-          //newImage.setAttribute("src", "static/test.png");
-          newImage.src = 'static/test.png?' + new Date().getTime();
+          var currentFrame = canvas.toDataURL("image/png");
+          $.post("/", { frame_data: currentFrame });
+          var newImage = document.getElementById("current");
+          newImage.src = 'static/current_frame.png?' + new Date().getTime();
         }
       }
 
