@@ -9,16 +9,12 @@
     <h1></h1>
 
     <p>
-      <img src="{{ url_for('original_video_feed') }}" width="640" height="360" style="image-rendering: pixelated;">
-      <img src="{{ url_for('upsampled_video_feed') }}" width="640" height="360">
-      <img id="test" src="static/test.png" width="640" height="360" style="image-rendering: pixelated;">
-    </p>
-    <p>
       <button onclick="startWebcam();">Start WebCam</button>
       <button onclick="stopWebcam();">Stop WebCam</button> 
     </p>
       <video id="video" controls autoplay></video>
       <canvas id="myCanvas"></canvas>  
+      <img id="test" src="static/test.png" height="480" style="image-rendering: pixelated;">
   </body>
 
   <script type="text/javascript">
@@ -81,13 +77,19 @@
       var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
 
       function snapshot() {
-      // Draws current image from the video element into the canvas
-        ctx.drawImage(video, 0,0, canvas.width, canvas.height);
-        var frame = canvas.toDataURL("image/png");
-        $.post("/", { frame_data: frame });
-        var newImage = document.getElementById("test");
-        //newImage.setAttribute("src", "static/test.png");
-        newImage.src = 'static/test.png?' + new Date().getTime();
+        if(webcamStream) {
+          var resizedWidth = 0.25 * video.videoWidth;
+          var resizedHeight = 0.25 * video.videoHeight;
+          canvas.width = resizedWidth;
+          canvas.height = resizedHeight;
+          // Draws current image from the video element into the canvas
+          ctx.drawImage(video, 0, 0, resizedWidth, resizedHeight);
+          var frame = canvas.toDataURL("image/png");
+          $.post("/", { frame_data: frame });
+          var newImage = document.getElementById("test");
+          //newImage.setAttribute("src", "static/test.png");
+          newImage.src = 'static/test.png?' + new Date().getTime();
+        }
       }
 
       timer = setInterval(snapshot, 1000);
