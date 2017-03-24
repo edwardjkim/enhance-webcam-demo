@@ -12,9 +12,10 @@
       <button onclick="startWebcam();">Start WebCam</button>
       <button onclick="stopWebcam();">Stop WebCam</button> 
     </p>
-      <video id="video" controls autoplay></video>
+      <video id="video" height="360" controls autoplay></video>
       <canvas id="myCanvas"></canvas>  
-      <img id="current" src="static/current_frame.png" height="480" style="image-rendering: pixelated;">
+      <img id="current" src="static/current_frame.jpg" height="360" style="image-rendering: pixelated;">
+      <img id="upsampled" src="static/upsampled_frame.jpg">
   </body>
 
   <script type="text/javascript">
@@ -78,20 +79,24 @@
 
       function snapshot() {
         if(webcamStream) {
-          var resizedWidth = 0.25 * video.videoWidth;
-          var resizedHeight = 0.25 * video.videoHeight;
+          var resizedWidth = 120;
+          var resizedHeight = 90;
           canvas.width = resizedWidth;
           canvas.height = resizedHeight;
           // Draws current image from the video element into the canvas
-          ctx.drawImage(video, 0, 0, resizedWidth, resizedHeight);
-          var currentFrame = canvas.toDataURL("image/png");
+          ctx.drawImage(video, 0, 0, 120, 90);
+          var currentFrame = canvas.toDataURL("image/jpeg");
           $.post("/", { frame_data: currentFrame });
-          var newImage = document.getElementById("current");
-          newImage.src = 'static/current_frame.png?' + new Date().getTime();
+
+          var newCurrentImage = document.getElementById("current");
+          newCurrentImage.src = 'static/current_frame.jpg?' + new Date().getTime();
+
+          var newUpsampledImage = document.getElementById("upsampled");
+          newUpsampledImage.src = 'static/upsampled_frame.jpg?' + new Date().getTime();
         }
       }
 
-      timer = setInterval(snapshot, 1000);
+      timer = setInterval(snapshot, 10000);
 
       // Event handler for new connections.
       // The callback function is invoked when a connection with the
