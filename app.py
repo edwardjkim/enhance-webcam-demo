@@ -1,38 +1,64 @@
-async_mode = "eventlet"
-from eventlet import wsgi, websocket
-import eventlet
-eventlet.monkey_patch()
 from flask import Flask, render_template, session, request, Response, redirect, url_for
-from flask_socketio import SocketIO, emit, disconnect
-
 import os
 import sys
 import base64
 import urllib
 import re
+
 from PIL import Image
 import cStringIO
 import numpy as np
-from scipy.misc import imsave
+from scipy.misc import imread, imsave
 import tensorflow as tf
-from OpenSSL import SSL
 
-import tf_ops
+sys.path.insert(0, './enhance')
+import sres
+
+
+input_images = tf.placeholder(tf.float32, shape=[1, 2, 90, 120, 3])
+output_images = sres.generator(input_images)
+
+tf.get_variable_scope().reuse_variables()
+saver = tf.train.Saver() 
+
+sess = tf.Session()
+
+saver.restore(sess, 'model/model.ckpt-99999')
+
 
 app = Flask(__name__)
-socketio = SocketIO(app)
 
-#sess, output_graph, input_var = tf_ops.start_tf_session('model/model.ckpt-999')
-sess = None
-output_graph = None
-input_var = None
 
-@app.route('/client', methods=['GET', 'POST'])
+def predict_and_save(data, filename):
+
+    generated_images = sess.run(output_images, feed_dict={input_images: data})
+    imsave(filename, generated_images[0, 1])
+
+
+def process_frames(previous_frame, current_frame, shape=(90, 120, 3)):
+
+    if os.path.exists(previous_frame):
+        previous_image = imread(previous_frame)
+    else:
+        previous_image = np.ones(shape)
+
+    if os.path.exists(current_frame):
+        current_image = imread(current_frame)
+    else:
+        current_image = np.ones(shape)
+
+    images = np.stack([[previous_image, current_image]])
+    images = images / 127.5 - 1.0
+
+    return images
+
+
+@app.route('/', methods=['GET', 'POST'])
 def index():
     """Video streaming home page."""
     if request.method == 'GET':
 
-        return render_template('index.html', async_mode=socketio.async_mode)
+        return render_template('index.html')
 
     if request.method == 'POST':
         
@@ -46,18 +72,18 @@ def index():
         with open('static/current_frame.jpg', 'w') as f:
             f.write(image_data)
 
-        input_images = tf_ops.process_frames('static/previous_frame.jpg', 'static/current_frame.jpg')
-        tf_ops.predict_and_save(sess, output_graph, input_var, input_images, 'static/upsampled_frame.jpg')
+        input_images = process_frames('static/previous_frame.jpg', 'static/current_frame.jpg')
+        predict_and_save(input_images, 'static/upsampled_frame.jpg')
 
         return ''
 
 
+@app.route('/view')
+def view():
+    """Video streaming home page."""
+    return render_template('view.html')
+
+
 if __name__ == '__main__':
 
-    eventlet.wsgi.server(
-        eventlet.wrap_ssl(
-            eventlet.listen(('', 8443)),
-            certfile='server.crt',
-            keyfile='server.key',
-            server_side=True),
-        app)
+    app.run(debug=True)

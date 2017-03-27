@@ -18,14 +18,12 @@ RUN apt-get install -y \
       python-scipy \
       netbase \
       git \
-      python-tk
+      python-tk \
+      nginx
  
 # Add requirements.txt
 ADD requirements.txt .
  
-# Install uwsgi Python web server
-RUN pip install --upgrade six
-RUN pip install uwsgi
 # Install app requirements
 RUN pip install -r requirements.txt
  
@@ -44,4 +42,4 @@ WORKDIR /webapp
 EXPOSE 8000
 EXPOSE 8443
 
-ENTRYPOINT ["uwsgi", "--https", "0.0.0.0:8443,server.crt,server.key", "--module", "app:app", "--processes", "1", "--threads", "8"]
+ENTRYPOINT ["gunicorn", "--bind", "0.0.0.0:8443", "--certfile", "server.crt", "--keyfile", "server.key", "-k", "gevent", "--timeout", "120", "wsgi:app", "--log-file=-"]

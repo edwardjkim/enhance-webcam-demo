@@ -1,6 +1,6 @@
 #!/bin/sh
 sudo docker build -t edwardjkim/flask .
 sudo docker rm -f flask
-sudo docker run -d -p 443:8443 \
+sudo nvidia-docker run -d -p 443:8443 \
   --name flask \
   edwardjkim/flask
