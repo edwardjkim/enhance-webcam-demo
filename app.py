@@ -8,12 +8,17 @@ import re
 from PIL import Image
 import cStringIO
 import numpy as np
-from scipy.misc import imread, imsave
+from scipy.misc import imread, imsave, imresize
 import tensorflow as tf
 
 sys.path.insert(0, './enhance')
 import sres
 
+
+sres.NUM_FILTERS = 64
+sres.FIRST_FILTER_SIZE = 3
+sres.SECOND_FILTER_SIZE = 3
+sres.THIRD_FILTER_SIZE = 3
 
 input_images = tf.placeholder(tf.float32, shape=[1, 2, 90, 120, 3])
 output_images = sres.generator(input_images)
@@ -23,7 +28,7 @@ saver = tf.train.Saver()
 
 sess = tf.Session()
 
-saver.restore(sess, 'model/model.ckpt-99999')
+saver.restore(sess, 'model/best_model.ckpt-39999')
 
 
 app = Flask(__name__)
@@ -53,12 +58,12 @@ def process_frames(previous_frame, current_frame, shape=(90, 120, 3)):
     return images
 
 
-@app.route('/', methods=['GET', 'POST'])
-def index():
+@app.route('/webcam', methods=['GET', 'POST'])
+def webcam():
     """Video streaming home page."""
     if request.method == 'GET':
 
-        return render_template('index.html')
+        return render_template('webcam.html')
 
     if request.method == 'POST':
         
@@ -75,13 +80,16 @@ def index():
         input_images = process_frames('static/previous_frame.jpg', 'static/current_frame.jpg')
         predict_and_save(input_images, 'static/upsampled_frame.jpg')
 
+        resized_image = imresize(input_images[0, 1], 400, interp='bicubic')
+        imsave('static/interp_frame.jpg', resized_image)
+
         return ''
 
 
-@app.route('/view')
-def view():
+@app.route('/')
+def index():
     """Video streaming home page."""
-    return render_template('view.html')
+    return render_template('index.html')
 
 
 if __name__ == '__main__':

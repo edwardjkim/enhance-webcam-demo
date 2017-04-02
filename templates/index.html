@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
 
+  <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+
   <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
   <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script>
   <script type="text/javascript" charset="utf-8"></script>
@@ -8,94 +10,47 @@
   <body onload="init();">
     <h1></h1>
 
-    <p>
-      <button onclick="startWebcam();">Start WebCam</button>
-      <button onclick="stopWebcam();">Stop WebCam</button> 
-    </p>
-      <video id="video" height="360" controls autoplay></video>
-      <canvas id="myCanvas"></canvas>  
+    <div id="images" class="overlay">
+
+      <div id="image1" class="imgContainer">
+        <img id="current" src="static/current_frame.jpg" height="360" style="image-rendering: pixelated;">
+        <p> Original, 0.8 Kbytes per frame </p>
+      </div>
+
+      <div id="image3" class="imgContainer">
+        <img id="interp" src="static/interp_frame.jpg">
+        <p> Bicubic interpolation</p>
+      </div>
+
+      <div id="image2" class="imgContainer">
+        <img id="upsampled" src="static/upsampled_frame.jpg">
+        <p> 4x upsampled, 9.9 KBytes per frame </p>
+      </div>
+
+    </div>
   </body>
 
   <script type="text/javascript">
 
-      //--------------------
-      // GET USER MEDIA CODE
-      //--------------------
-    navigator.getUserMedia = (navigator.getUserMedia || navigator.webkitGetUserMedia ||
-      navigator.mozGetUserMedia || navigator.msGetUserMedia);
+    function update() {
+       var newCurrentImage = document.getElementById("current");
+       newCurrentImage.src = 'static/current_frame.jpg?' + new Date().getTime();
 
-    var video;
-    var webcamStream;
+       var newUpsampledImage = document.getElementById("upsampled");
+       newUpsampledImage.src = 'static/upsampled_frame.jpg?' + new Date().getTime();
 
-    function startWebcam() {
-      if (navigator.getUserMedia) {
-         navigator.getUserMedia (
+       var newUpsampledImage = document.getElementById("interp");
+       newUpsampledImage.src = 'static/interp_frame.jpg?' + new Date().getTime();
+    }
 
-           // constraints
-          {
-            video: true,
-            audio: false
-          },
+    updateTimer = setInterval(update, 100);
 
-          // successCallback
-          function(localMediaStream) {
-            video = document.querySelector('video');
-            video.src = window.URL.createObjectURL(localMediaStream);
-            webcamStream = localMediaStream;
-          },
-
-          // errorCallback
-          function(err) {
-            console.log("The following error occured: " + err);
-          }
-        );
-      } else {
-        console.log("getUserMedia not supported");
-      }  
-      }
-
-      function stopWebcam() {
-        webcamStream.getVideoTracks()[0].stop();
-      }
-      //---------------------
-      // TAKE A SNAPSHOT CODE
-      //---------------------
-      var canvas, ctx;
-
-      function init() {
-        // Get the canvas and obtain a context for
-        // drawing in it
-        canvas = document.getElementById("myCanvas");
-        ctx = canvas.getContext('2d');
-      }
-
-      namespace = '/';
-      // Connect to the Socket.IO server.
-      // The connection URL has the following format:
-      //     http[s]://<domain>:<port>[/<namespace>]
-      var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
-
-      function snapshot() {
-        if(webcamStream) {
-          var resizedWidth = 120;
-          var resizedHeight = 90;
-          canvas.width = resizedWidth;
-          canvas.height = resizedHeight;
-          // Draws current image from the video element into the canvas
-          ctx.drawImage(video, 0, 0, 120, 90);
-          var currentFrame = canvas.toDataURL("image/jpeg");
-          $.post("/", { frame_data: currentFrame });
-          }
-       }
-
-      snapshotTimer = setInterval(snapshot, 100);
-
-      // Event handler for new connections.
-      // The callback function is invoked when a connection with the
-      // server is established.
-      socket.on('frame', function(data) {
-        socket.emit('frame', frame);
-      });   
+    // Event handler for new connections.
+    // The callback function is invoked when a connection with the
+    // server is established.
+    socket.on('frame', function(data) {
+      socket.emit('frame', frame);
+    });   
 
   </script>
 
