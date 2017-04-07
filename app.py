@@ -35,10 +35,15 @@ saver.restore(sess, 'model/best_model.ckpt-39999')
 app = Flask(__name__)
 
 
-def predict_and_save(data, filename):
+def predict_and_save(data, filename, shape=None):
 
     generated_images = sess.run(output_images, feed_dict={input_images: data})
-    imsave(filename, generated_images[0, 1])
+    current_frame = generated_images[0, 1]
+
+    if shape:
+        current_frame = imresize(current_frame, shape)
+
+    imsave(filename, current_frame)
 
 
 def process_frames(previous_frame, current_frame, shape=(90, 120, 3)):
